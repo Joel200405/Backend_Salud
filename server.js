@@ -17,3 +17,7 @@ app.use('/auth', authRoutes);
 app.listen(port, () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
 });
+
+/* app.listen(port, '0.0.0.0', () => {
+    console.log(`Servidor escuchando en http://192.168.1.100:${port}`); // Coloca la IP de tu PC aquí
+}); */
