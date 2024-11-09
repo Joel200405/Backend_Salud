@@ -518,4 +518,60 @@ router.get('/categorias-servicios', (req, res) => {
     });
   });
 
+  // Ruta para listar todas las clínicas con ID y nombre
+  router.get('/listar-clinicas', (req, res) => {
+    const sql = 'SELECT id, nombre FROM clinicas';
+
+    db.query(sql, (err, results) => {
+      if (err) {
+        console.error('Error en la consulta:', err);
+        return res.status(500).send('Error en el servidor');
+      }
+      res.status(200).json(results); // Devolvemos la lista con ID y nombre de las clínicas
+    });
+  });
+
+  const moment = require('moment');
+
+  // Ruta para crear una nueva cita
+  router.post('/crear-cita', (req, res) => {
+    const { servicio, clinica, documento, motivo, fecha, hora } = req.body;
+
+    // Verificamos que los datos obligatorios estén presentes
+    if (!servicio || !clinica || !documento || !fecha || !hora) {
+      return res.status(400).send('Faltan datos requeridos');
+    }
+
+    // Convertimos la fecha de DD/MM/YYYY a YYYY-MM-DD
+    const fechaConvertida = moment(fecha, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+    // Definimos la consulta SQL para insertar una nueva cita
+    const sql = `
+      INSERT INTO citas (servicio, clinica, documento, motivo, fecha, hora)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    // Ejecutamos la consulta
+    db.query(sql, [servicio, clinica, documento, motivo, fechaConvertida, hora], (err, result) => {
+      if (err) {
+        console.error('Error en la consulta:', err);
+        return res.status(500).send('Error en el servidor');
+      }
+      res.status(201).json({ message: 'Cita creada con éxito', citaId: result.insertId });
+    });
+  });
+
+  // Ruta para obtener todas las citas (GET)
+  router.get('/citas', (req, res) => {
+    const sql = 'SELECT * FROM citas';
+    
+    db.query(sql, (err, results) => {
+      if (err) {
+        console.error('Error al obtener clínicas:', err);
+        return res.status(500).json({ message: 'Error al obtener clínicas' });
+      }
+      res.status(200).json(results);
+    });
+  });
+
 module.exports = router;
