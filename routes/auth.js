@@ -574,4 +574,75 @@ router.get('/categorias-servicios', (req, res) => {
     });
   });
 
+  // Ruta para registrar un doctor (POST)
+  router.post('/doctor', (req, res) => {
+    const {
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      correo,
+      telefono,
+      especialidad_id
+    } = req.body;
+
+    // Validar campos obligatorios
+    if (!nombre || !apellido_paterno || !correo || !especialidad_id) {
+      return res.status(400).json({
+        message: 'Los campos nombre, apellido paterno, correo y especialidad_id son obligatorios'
+      });
+    }
+
+    const sql = `
+      INSERT INTO doctores (
+        nombre, 
+        apellido_paterno, 
+        apellido_materno, 
+        correo, 
+        telefono, 
+        especialidad_id
+      ) VALUES (?, ?, ?, ?, ?, ?)`;
+
+    db.query(
+      sql,
+      [nombre, apellido_paterno, apellido_materno || null, correo, telefono || null, especialidad_id],
+      (err, result) => {
+        if (err) {
+          if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ message: 'El correo ya está registrado' });
+          }
+          console.error(err);
+          return res.status(500).json({ message: 'Error al guardar el doctor' });
+        }
+        res.status(201).json({
+          message: 'Doctor registrado correctamente',
+          id: result.insertId
+        });
+      }
+    );
+  });
+
+  // Ruta para buscar doctores por especialidad
+  router.get('/doctor/especialidad/:especialidad_id', (req, res) => {
+    const { especialidad_id } = req.params;
+    console.log('ID de especialidad recibido:', especialidad_id);
+    const sql = `
+      SELECT 
+        CONCAT(nombre, ' ', apellido_paterno, ' ', COALESCE(apellido_materno, '')) AS nombre_completo
+      FROM doctores
+      WHERE especialidad_id = ?`;
+
+    db.query(sql, [especialidad_id], (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Error al obtener los doctores' });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'No se encontraron doctores para esta especialidad' });
+      }
+
+      res.status(200).json(results);
+    });
+  });
+
 module.exports = router;
