@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const bcrypt = require('bcrypt'); // Importa bcrypt
 const jwt = require('jsonwebtoken'); // Importa jsonwebtoken
 require('dotenv').config(); // Para cargar las variables de entorno
